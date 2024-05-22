@@ -1,0 +1,53 @@
+`timescale 1ns / 1ps
+
+module tb_DDS;
+
+    // Parameters
+    parameter CLK_PERIOD = 10; // Clock period in ps (1 second)
+    parameter SIMULATION_TIME = 20000; // Simulation time in ns (extended to 1 second)
+
+    // Inputs
+    reg clk_1s = 0; // 1-second clock
+    reg update = 0;
+    reg sclk = 0;
+    reg [15:0] sdata = 16'h1234; // Initialize sdata with 16'h1234 initially
+
+    // Outputs from DDS module
+    wire [7:0] data_out_sine;
+    wire [7:0] data_out_cosine;
+
+    // Instantiate the DDS module
+    DDS uut (
+        .clk_100MHz(clk_1s),
+        .update(update),
+        .sclk(sclk),
+        .sdata(sdata),
+        .data_out_sine(data_out_sine),
+        .data_out_cosine(data_out_cosine)
+    );
+
+    // Clock generation for 1-second clock
+    always #((CLK_PERIOD)/2) clk_1s = ~clk_1s;
+
+    // Stimulus generation
+    initial begin
+        // Initialize inputs
+        update = 0;
+        sclk = 0;
+        sdata = 16'h1234; // Sample frequency control word (adjust as needed)
+
+        // Apply initial stimulus after a delay
+        #10;
+        update = 1;
+
+        // Monitor outputs
+        $monitor("Time=%0t ns, sclk=%b, sdata=%h, Sine=%h, Cosine=%h", $time, sclk, sdata, data_out_sine, data_out_cosine);
+        
+        // Run simulation for extended duration (1 second)
+        #SIMULATION_TIME; // Simulate for 1 second
+
+        // End simulation
+        $finish;
+    end
+
+endmodule
